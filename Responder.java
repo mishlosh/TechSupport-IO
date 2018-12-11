@@ -90,9 +90,11 @@ public class Responder
                 // if next line is blank, then record&clear word&response
                 if(!word.equals("")){
                     if(newLine.equals("")){
-                        responseMap.put(word, response);
-                        response = "";
-                        word = "";
+                        if(!response.equals("")){
+                            responseMap.put(word, response);
+                            response = "";
+                            word = "";
+                        }
                     }else{
                         response += newLine + '\n';
                     }
@@ -182,8 +184,10 @@ public class Responder
             while(newLine != null) {
                 //
                 if(newLine.equals("")){
-                    defaultResponses.add(response);
-                    response = "";
+                    if(!response.equals("")){
+                        defaultResponses.add(response);
+                        response = "";
+                    }
                 }else{
                     response += newLine + '\n';
                 }
