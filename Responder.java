@@ -99,7 +99,7 @@ public class Responder
                         response += newLine + '\n';
                     }
                 }else{
-                    word = newLine;
+                    word = newLine.trim();
                 }
                 newLine = reader.readLine();
             }
