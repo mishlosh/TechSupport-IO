@@ -15,7 +15,9 @@ import java.util.*;
  * words is recognized, one of the default responses is randomly chosen.
  * 
  * @author David J. Barnes and Michael Kölling.
- * @version 2016.02.29
+ * @author Michal Legocki
+ * @version 2018.12.10
+ * 
  */
 public class Responder
 {
@@ -25,6 +27,7 @@ public class Responder
     private ArrayList<String> defaultResponses;
     // The name of the file containing the default responses.
     private static final String FILE_OF_DEFAULT_RESPONSES = "default.txt";
+    private static final String FILE_OF_TARGETED_RESPONSES = "targeted.txt";
     private Random randomGenerator;
 
     /**
@@ -64,9 +67,54 @@ public class Responder
     /**
      * Enter all the known keywords and their associated responses
      * into our response map.
+     * Will read from file "targeted.txt"
+     * Format:  Word
+     *          Response Line
+     *          (extended optional) Response Line
+     *          *blank for delimiter*
      */
     private void fillResponseMap()
     {
+        //altered method to instead read from "targeted.txt"
+        
+        Charset charset = Charset.forName("US-ASCII");
+        Path path = Paths.get(FILE_OF_TARGETED_RESPONSES);
+        
+        try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
+            String response = "";
+            String word = "";
+            String newLine = reader.readLine();
+            while(newLine != null) {
+                // if word is empty, fill with next line.
+                // if word is filled, then fill response with next line
+                // if next line is blank, then record&clear word&response
+                if(!word.equals("")){
+                    if(newLine.equals("")){
+                        responseMap.put(word, response);
+                        response = "";
+                        word = "";
+                    }else{
+                        response += newLine + '\n';
+                    }
+                }else{
+                    word = newLine;
+                }
+                newLine = reader.readLine();
+            }
+            //ensure that all responses are included in case the file ends
+            //with a null instead of blank
+            if(!response.equals("") && !word.equals("")){
+                responseMap.put(word,response);
+            }                   
+        }
+        catch(FileNotFoundException e) {
+            System.err.println("Unable to open " + FILE_OF_TARGETED_RESPONSES);
+        }
+        catch(IOException e) {
+            System.err.println("A problem was encountered reading " +
+                               FILE_OF_TARGETED_RESPONSES);
+        }
+        /*
         responseMap.put("crash", 
                         "Well, it never crashes on our system. It must have something\n" +
                         "to do with your system. Tell me more about your configuration.");
@@ -113,22 +161,39 @@ public class Responder
                         "Ahhh, BlueJ, yes. We tried to buy out those guys long ago, but\n" +
                         "they simply won't sell... Stubborn people they are. Nothing we can\n" +
                         "do about it, I'm afraid.");
+                        */
     }
 
     /**
      * Build up a list of default responses from which we can pick
      * if we don't know what else to say.
+     * Reads from "default.txt"
+     * Format:  Response Line
+     *          (extended optional) Response Line
+     *          *blank delimiter*
      */
     private void fillDefaultResponses()
     {
         Charset charset = Charset.forName("US-ASCII");
         Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
         try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
-            String response = reader.readLine();
-            while(response != null) {
-                defaultResponses.add(response);
-                response = reader.readLine();
+            String response = "";
+            String newLine = reader.readLine();
+            while(newLine != null) {
+                //
+                if(newLine.equals("")){
+                    defaultResponses.add(response);
+                    response = "";
+                }else{
+                    response += newLine + '\n';
+                }
+                newLine = reader.readLine();
             }
+            //ensure that all responses are included in case the file ends
+            //with a null instead of blank
+            if(!response.equals("")){
+                defaultResponses.add(response);
+            }                   
         }
         catch(FileNotFoundException e) {
             System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
